@@ -32,7 +32,7 @@ function get_movie_list(page=1,list){
 	loader.className="loader"
 	
 	let nav = document.createElement("nav")
-	nav.setAttribute("style","border-bottom:1px solid lightgray; display:flex")
+	nav.setAttribute("style","border-bottom:1px solid lightgray; display:flex;height:50px")
 
 	let logo = document.createElement("img")
 	logo.setAttribute("src","THE_MOVIE_DB.png")
@@ -56,12 +56,16 @@ function get_movie_list(page=1,list){
 	badge.innerHTML=`${like_movie_list.length}`
 	liked_movie.appendChild(badge)
 
+	let configure = document.createElement("div")
+	configure.innerHTML = "Configure"
+	configure.className="nav-item"
 	
 
 
 	nav.appendChild(logo)
 	nav.appendChild(popular_movie_list)
 	nav.appendChild(liked_movie)
+	nav.appendChild(configure)
 
 	document.body.appendChild(nav)
 	document.body.appendChild(loader);
@@ -94,7 +98,7 @@ function display_movies(data,list){
 	// document.body.removeChild(loader)
 	document.body.innerHTML=""
 	let nav = document.createElement("nav")
-	nav.setAttribute("style","border-bottom:1px solid lightgray; display:flex")
+	nav.setAttribute("style","border-bottom:1px solid lightgray; display:flex;height:50px")
 
 	let logo = document.createElement("img")
 	logo.setAttribute("src","THE_MOVIE_DB.png")
@@ -117,21 +121,23 @@ function display_movies(data,list){
 	badge.innerHTML=`${like_movie_list.length}`
 	liked_movie.appendChild(badge)
 
-	let configure = document.createElement('div')
+	let configure = document.createElement("div")
 	configure.className="nav-item"
 	configure.innerHTML = "Configure"
-	configure.style="align-self: flex-end"
+	configure.addEventListener("click",()=>{display_movies(like_movie_list,"configure")})
+	configure.setAttribute("style", `${list === "configure"?"border-bottom: 2px solid red;":""}`)
+	
 
 
 	nav.appendChild(logo)
 	nav.appendChild(popular_movie_list)
 	nav.appendChild(liked_movie)
-	// nav.appendChild(configure)
+	nav.appendChild(configure)
 
 	document.body.appendChild(nav)
 
 	let title = document.createElement("h1")
-	title.innerHTML = `${list==="popular_movie_list"?"The Movie List":"Liked Movies"}`
+	title.innerHTML = `${list==="popular_movie_list"?"The Movie List":`${list==="liked_movie"?"Liked Movies":"Configure"}`}`
 	title.style= "font-size:60px; text-align:center"
 	document.body.appendChild(title)
 
@@ -142,89 +148,112 @@ function display_movies(data,list){
 
 
 
-	let container = document.createElement("div")
-	container.setAttribute("style","display:flex; justify-content:row ;flex-wrap:wrap")
-	for (let i = 0;i<data.length;i++){
-		let div = document.createElement("div")
-		div.className = "movie"
-		div.id = i
-
-		let movie = document.createElement("div")
-		movie.style = "width:200"
+	if (list!=="configure")
+		{
+		let container = document.createElement("div")
+		container.setAttribute("style","display:flex; justify-content:row ;flex-wrap:wrap")
+		for (let i = 0;i<data.length;i++){
+			let div = document.createElement("div")
+			div.className = "movie"
 	
-		let movie_title = document.createElement("p")
-		movie_title.setAttribute("style","width:200px;height:40px")
-		let text = document.createTextNode(data[i].original_title)
-		movie_title.appendChild(text)
+			let movie = document.createElement("div")
+			movie.style = "width:200"
+		
+			let movie_title = document.createElement("p")
+			movie_title.setAttribute("style","width:200px;height:40px")
+			let text = document.createTextNode(data[i].original_title)
+			movie_title.appendChild(text)
+	
+			let img = document.createElement("img")
+			img.className="image "
+			img.setAttribute("width","200px")
+			img.setAttribute("src",`https://image.tmdb.org/t/p/original/${data[i].poster_path}` );
+			img.setAttribute("alt",data[i].original_title)
+	
+	
+			// img.setAttribute("draggable",true)
+			// img.addEventListener("ondragstart",drag)
+			// img.addEventListener("ondragover",allowDrop)
+			// img.addEventListener("drop",drop)
+	
+			img.addEventListener("click",()=>{pop_up_modal(data[i])})
+	
+			let mid = document.createElement("div")
+			mid.className="middle"
+	
+			let like_button = document.createElement("button")
+			like_button.className = "like_button"
+			like_button.innerHTML=`${list === "liked_movie"?"Unlike":"Like"}`
+			like_button.addEventListener("click",()=>{list === "liked_movie"? unlike_movie(i):add_movie(data[i])})
+	
+			mid.appendChild(like_button)
+	
+			movie.appendChild(img)
+			movie.appendChild(movie_title)
+			movie.appendChild(mid)
+	
+			div.appendChild(movie)
+			container.appendChild(div);
+		}
+		document.body.appendChild(container)
+	
+		if(list==="popular_movie_list"){
+			let footer = document.createElement("footer")
+			footer.style="display:flex;justify-content:space-evenly"
+	
+			let page_number = document.createElement("p")
+			page_number.innerHTML= `Page ${page}`
+			page_number.style="font-size:16px"
+	
+			let prev_page = document.createElement("button")
+			prev_page.className="like_button"
+			prev_page.innerHTML="Prev"
+			if(page===1){
+				prev_page.setAttribute("disabled",true)
+				prev_page.className="disabled_button"
+	
+			}
+			prev_page.addEventListener("click",()=>{get_movie_list(--page,"popular_movie_list")})
+	
+			let next_page = document.createElement("button")
+			next_page.className="like_button"
+			next_page.innerHTML="Next"
+			next_page.addEventListener("click",()=>{get_movie_list(++page,"popular_movie_list")})
+	
+	
+			footer.appendChild(prev_page)
+			footer.appendChild(page_number)
+			footer.appendChild(next_page)
+			document.body.appendChild(footer)	
+		}}
+		else{
 
-		let img = document.createElement("img")
-		img.className="image "
-		img.setAttribute("width","200px")
-		img.setAttribute("src",`https://image.tmdb.org/t/p/original/${data[i].poster_path}` );
-		img.setAttribute("alt",data[i].original_title)
+			console.log("figure")
+			let container = document.createElement("div")
+			container.setAttribute("style","display:flex; flex-direction:column;align-items:center;text-align:center")
 
+			for (let i = 0;i<data.length;i++){
 
-		// img.setAttribute("draggable",true)
-		// img.addEventListener("ondragstart",drag)
-		// img.addEventListener("ondragover",allowDrop)
-		// img.addEventListener("drop",drop)
+				let movie_title = document.createElement("p")
+				movie_title.className="configure_title"
+				movie_title.id=i
+				// movie_title.setAttribute("style","width:200px;height:40px")
+				let text = document.createTextNode(data[i].original_title)
+				movie_title.appendChild(text)
+				container.appendChild(movie_title)
+			}
 
-		img.addEventListener("click",()=>{pop_up_modal(data[i])})
-
-		let mid = document.createElement("div")
-		mid.className="middle"
-
-		let like_button = document.createElement("button")
-		like_button.className = "like_button"
-		like_button.innerHTML=`${list === "liked_movie"?"Unlike":"Like"}`
-		like_button.addEventListener("click",()=>{list === "liked_movie"? unlike_movie(i):add_movie(data[i])})
-
-		mid.appendChild(like_button)
-
-		movie.appendChild(img)
-		movie.appendChild(movie_title)
-		movie.appendChild(mid)
-
-		div.appendChild(movie)
-		container.appendChild(div);
-	}
-	document.body.appendChild(container)
-
-	if(list==="popular_movie_list"){
-		let footer = document.createElement("footer")
-		footer.style="display:flex;justify-content:space-evenly"
-
-		let page_number = document.createElement("p")
-		page_number.innerHTML= `Page ${page}`
-		page_number.style="font-size:16px"
-
-		let prev_page = document.createElement("button")
-		prev_page.className="like_button"
-		prev_page.innerHTML="Prev"
-		if(page===1){
-			prev_page.setAttribute("disabled",true)
-			prev_page.className="disabled_button"
+			document.body.appendChild(container)
+			var allDraggableElements = document.querySelectorAll('.configure_title')
+			dragAndDropModule(allDraggableElements);
 
 		}
-		prev_page.addEventListener("click",()=>{get_movie_list(--page,"popular_movie_list")})
-
-		let next_page = document.createElement("button")
-		next_page.className="like_button"
-		next_page.innerHTML="Next"
-		next_page.addEventListener("click",()=>{get_movie_list(++page,"popular_movie_list")})
 
 
-		footer.appendChild(prev_page)
-		footer.appendChild(page_number)
-		footer.appendChild(next_page)
-		document.body.appendChild(footer)	
-	}
-
-
-	if(list==="liked_movie"){
-		var allDraggableElements = document.querySelectorAll('.movie')
-		dragAndDropModule(allDraggableElements);
-};
+// 	if(list==="congigure"){
+// 		var allDraggableElements = document.querySelectorAll('.configure_title')
+// 		dragAndDropModule(allDraggableElements);
+// };
 }
 
 function pop_up_modal(obj){
@@ -309,11 +338,12 @@ function pop_up_modal(obj){
 get_genre_lit()
 console.log(1)
 get_movie_list(page,"popular_movie_list")
-var allDraggableElements = document.querySelectorAll('.movie');
+var allDraggableElements = document.querySelectorAll('.configure_title');
 dragAndDropModule(allDraggableElements);
 
 
 function dragAndDropModule(draggableElements){
+	console.log(draggableElements)
 
     var elemYoureDragging = null
         , dataString        = 'text/html'    
@@ -347,17 +377,12 @@ function dragAndDropModule(draggableElements){
         };
 
         dragonDrop.handleDragStartMove = function(e) {
-			console.log(e)
-			var dragImg = document.createElement("img");
-			dragImg.setAttribute("width","200px")
-			// dragImg.src = e.path[0].currentSrc
-			// dragImg.className="image"
+			
 
 			elementDragged = this;
 
 			e.dataTransfer.effectAllowed = 'move';
 			e.dataTransfer.setData("text", this.id);
-			e.dataTransfer.setDragImage(dragImg, 20, 50); //idk about a drag image 
         };
 
         dragonDrop.handleDragEnter = function(e) {
@@ -382,7 +407,8 @@ function dragAndDropModule(draggableElements){
           }
           this.style.border = "2px solid transparent";
           e.stopPropagation();
-          display_movies(like_movie_list,'liked_movie')
+          console.log("ye")
+          display_movies(like_movie_list,'configure')
           return false;
         };
 
